@@ -113,8 +113,8 @@ end
 ;;; Agent has sensors, effectors (actions) and a behaviour (reactive)
 ;;; The agent behaviour encoded sa reactive rules
 to execute-behaviour
-   if detect-obstacle [avoid-obstacle stop]
-   if true [move-randomly stop]
+  ;if fire-burning[move-towards-fire]
+  if detect-obstacle [avoid-obstacle stop]
 end
 
 
@@ -124,7 +124,11 @@ end
 ;; Detecting obstacles in front of the unit.
 ;; Obstacles are fire and other units. The agent can move through trees.
 to-report detect-obstacle
-ifelse any? fires in-cone 2 60 or any? other units in-cone 2 60  [report true][report false]
+  ifelse any? fires in-cone 2 60 or any? other units in-cone 2 60  [report true][report false]
+end
+
+to-report fire-burning
+  if count fires > 0 [report true]
 end
 
 ;;; detects a fire in the neighborhood of the unit (8 patches areound unit)
@@ -182,6 +186,12 @@ end
 to move-randomly
   move-ahead
   turn-randomly
+end
+
+to move-towards-fire
+  move-ahead
+  ; Change direction to face closest fire to agent
+  face min-one-of fires[distance myself]
 end
 
 ;; Moves ahead the agent. Its speed is inversly proportional to the water it is carrying.
@@ -413,7 +423,7 @@ CHOOSER
 tree-num
 tree-num
 100 200 300 400
-3
+0
 
 CHOOSER
 12
