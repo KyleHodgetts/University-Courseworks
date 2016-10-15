@@ -361,6 +361,10 @@ end
 ;; move-with-state
 ;;
 ;; what you have to write
+;;
+;; TODO
+;; Logically deduce pits from breezy patches
+;; React to presence of Wumpus
 to move-with-state
   ; Get current coordinate for possible use later
   let xcoord round xcor
@@ -422,7 +426,6 @@ to move-randomly
   if (move = 1)[left-turn]
   if (move = 2)[right-turn]
 end
-
 
 
 
