@@ -4,8 +4,8 @@
 ;; A NetLogo version of (part of) the Russell & Norvig Wumpus World.
 ;;
 ;; Author:   Simon Parsons
-;; Modified: October 5th
-;; Version:  2.1
+;; Modified: October 11th
+;; Version:  2.2
 ;;----------------------------------------------------------------------------
 
 ;;----------------------------------------------------------------------------
@@ -278,6 +278,7 @@ end
 ;; turn to the right
 to right-turn
   right 90
+  set steps steps + 1
 end
 
 ;; go-forward
@@ -336,38 +337,12 @@ end
 ;;
 ;; what you have to write
 to move-rule-based
-  if glitters? [grab-gold] ; Just like before, grab the gold if it's there
-  ifelse breezy?
-  [right-turn] ; Pit in adjacent square
-
-  ; No pit
-  [
-   ifelse smelly?
-   [right-turn right-turn] ; Wumpus in adjacent square
-
-   ; No Wumpus or pit
-   []
-   ]
-  avoid-walls
-  go-forward
 end
 
 ;; move-with-state
 ;;
 ;; what you have to write
 to move-with-state
-end
-
-; Check agent is not about to walk into the wall. Change direction if yes
-to avoid-walls
-
-  ; At far right or left of board
-  ; Combined statements because cannot be at both fair right and far left
-  if ((pxcor = max-pxcor and heading = 90) or (pxcor = min-pxcor and heading = 270))[right-turn]
-
-  ; At top or bottom of board
-  ; Seperate statement as can be at far right/left of board AND top/bottom of board
-  if ((pycor = max-pycor and heading = 0) or (pycor = min-pycor and heading = 180))[right-turn]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
