@@ -339,6 +339,10 @@ end
 ;; move-rule-based
 ;;
 ;; what you have to write
+;;
+;; TODO
+;; Logically deduce patches that are definitely pits
+;; Write logic for reacting to presence of the Wumpus
 to move-rule-based
   ; Always ensure that any gold is picked up
   if glitters? [grab-gold]
@@ -406,6 +410,8 @@ to move-with-state
         set y -1 ; Reset y counter for next column interation
         set x (x + 1)
       ]
+
+      ;; TODO: Logically deduce any patches that we now know are pits
   ]
   go-forward
 end
