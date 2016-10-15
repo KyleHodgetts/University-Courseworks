@@ -573,9 +573,13 @@ Run the program with different numbers of pits and gold, and with the Wumpus mov
 ## 3.1 Evaluating the default approach
 ### Initial Run Results
 ![Initial Run](file:initialrun.png)
-![Initial Run](file:initialanalysis.png)
+![Initial Analysis](file:initialanalysis.png)
 
 ## 3.2 Condition / Agent Controller
+### Rule Run Results
+![Rule Run](file:rulerun.png)
+![Rule Analysis](file:ruleanalysis.png)
+
 
 ## EXTENDING THE MODEL
 
