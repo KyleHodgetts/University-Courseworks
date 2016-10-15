@@ -570,16 +570,23 @@ The selector "agent-type" picks between the default random agents, and agents wh
 
 Run the program with different numbers of pits and gold, and with the Wumpus moving and stationary. Is there a combination where the agents win most of the time?
 
-## 3.1 Evaluating the default approach
+## 3.0 & 3.1 Evaluating the default approach
 ### Initial Run Results
 ![Initial Run](file:initialrun.png)
 ![Initial Analysis](file:initialanalysis.png)
 
-## 3.2 Condition / Agent Controller
+The agent won 1/5 of the time.
+
+## 3.2 & 3.3 Condition / Action Controller
 ### Rule Run Results
 ![Rule Run](file:rulerun.png)
 ![Rule Analysis](file:ruleanalysis.png)
 
+The agent won 4/5 of the time, a substantial improvement on the previous run.
+When the agent won in the previous run, it did so in a much less amount of ticks to the current run. I attribute this to the rule-based agent attempting to avoid pits and the Wumpus whilst looking for the gold.
+
+## 3.4 & 3.5 State Controller
+### State Run Results
 
 ## EXTENDING THE MODEL
 
