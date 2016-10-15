@@ -27,7 +27,7 @@ globals [grabbed steps score]
 patches-own [am-pit? am-breezy? am-smelly? am-gold? am-wumpus?]
 
 ;; here you can add state information to be used by move-with-state
-agents-own []
+agents-own [safe-patches breezy-patches possible-pit-patches pit-patches]
 
 ;;----------------------------------------------------------------------------
 ;;
@@ -119,6 +119,12 @@ end
 to create-the-agents
   create-agents 10 [ setxy random-xcor random-ycor ]
   ask agents [pick-heading]
+  ask agents [
+    set safe-patches []
+    set breezy-patches []
+    set possible-pit-patches []
+    set pit-patches []
+  ]
 end
 
 ;; pick-heading
@@ -325,10 +331,7 @@ end
 ;; pick between no turn, turn left and turn right, then move forward. not a good strategy
 ;; in a dangerous dungeon.
 to move-random
-  let move random 3
-  if (move = 0)[] ; no turn
-  if (move = 1)[left-turn]
-  if (move = 2)[right-turn]
+  move-randomly
   go-forward
   if glitters? [grab-gold]
 end
@@ -345,11 +348,7 @@ to move-rule-based
     ; Turn away from the wumpus in case he moves towards you.
     ifelse smelly? [right-turn right-turn][
       ; Neither breezy nor smelly
-      ; Move randomly. May be facing wall
-      let move random 3
-      if (move = 0)[] ; no turn
-      if (move = 1)[left-turn]
-      if (move = 2)[right-turn]
+      move-randomly
     ]
   ]
   go-forward ; Attempt to move
@@ -359,7 +358,68 @@ end
 ;;
 ;; what you have to write
 to move-with-state
+  ; Get current coordinate for possible use later
+  let xcoord round xcor
+  let ycoord round ycor
+  let coord (list xcoord ycoord)
+
+  if glitters? [grab-gold]
+  if not smelly? [
+    ; Add to safe squares
+    set safe-patches (lput coord safe-patches)
+
+    ; Since it is safe, no longer can be a possible pit patch
+    if member? coord possible-pit-patches [
+      set possible-pit-patches (remove coord possible-pit-patches)
+    ]
+  ]
+
+  ; If a square is breezy, it is inherently safe
+  ; As long as the square wasn't smelly at the time of entering
+  ; This square is now a safe square
+  if breezy? [
+      ; Add as a breezy sqaure
+      set breezy-patches (lput coord breezy-patches)
+
+      ; For each of the adjacent 8 squares, if they are not in safe or not in pit patches, add to possible pit patches
+
+      ; Simple loop counters
+      let x -1
+      let y -1
+      while[x <= 1][
+
+        while[y <= 1][
+          let adjx (xcoord + x)
+          let adjy (ycoord + y)
+          let adj (list adjx adjy)
+          ; Ensure we are not trying to access something out of bounds
+          if not ((adjx < min-pxcor) or (adjx > max-pxcor) or (adjy < min-pycor) or (adjy > max-pxcor))[
+            ; Only add to possible pit patches
+            ; If we don't know whether the square is safe / breezy or isn't definitely a pit patch, that we currently know of.
+            if not ((member? adj safe-patches) or (member? adj pit-patches)) [
+              set possible-pit-patches (lput adj possible-pit-patches)
+            ]
+          ]
+          set y (y + 1)
+        ]
+
+        set y -1 ; Reset y counter for next column interation
+        set x (x + 1)
+      ]
+  ]
+  go-forward
 end
+
+to move-randomly
+  let move random 3
+  if (move = 0)[] ; no turn
+  if (move = 1)[left-turn]
+  if (move = 2)[right-turn]
+end
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -460,7 +520,7 @@ CHOOSER
 agent-type
 agent-type
 "random" "rule-based" "with-state"
-1
+2
 
 SWITCH
 19
