@@ -337,6 +337,22 @@ end
 ;;
 ;; what you have to write
 to move-rule-based
+  ; Always ensure that any gold is picked up
+  if glitters? [grab-gold]
+  ; Will eventually turn away from pit and be out of breeze
+  ifelse breezy? [right-turn]
+  [
+    ; Turn away from the wumpus in case he moves towards you.
+    ifelse smelly? [right-turn right-turn][
+      ; Neither breezy nor smelly
+      ; Move randomly. May be facing wall
+      let move random 3
+      if (move = 0)[] ; no turn
+      if (move = 1)[left-turn]
+      if (move = 2)[right-turn]
+    ]
+  ]
+  go-forward ; Attempt to move
 end
 
 ;; move-with-state
