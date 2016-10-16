@@ -381,7 +381,7 @@ to move-with-state
   ; If a square is breezy, it is inherently safe
   ; As long as the square wasn't smelly at the time of entering
   ; This square is now a safe square
-  if breezy? [
+  ifelse breezy? [
       ; Add as a breezy sqaure
       set breezy-patches (lput coord breezy-patches)
 
@@ -411,9 +411,84 @@ to move-with-state
         set x (x + 1)
       ]
 
-      ;; TODO: Logically deduce any patches that we now know are pits
-  ]
-  go-forward
+      ;; Logically deduce any patches that we now know are pits or possible pits
+      let rulexminus xcoord - 1
+      let rulexplus xcoord + 1
+      let ruleyminus ycoord - 1
+      let ruleyplus ycoord + 1
+
+      ;; Rule 1
+      ;; breezy(x, y) ^ breezy(x, y-1) ^ breezy(x+1, y) --> pit(x+1, y-1)
+      if (member?(list xcoord ruleyminus) breezy-patches) and (member? (list rulexplus ycoord) breezy-patches)[
+        let pitpatch (list rulexplus ruleyminus)
+        set pit-patches (lput pitpatch pit-patches)
+
+        ; No longer a possible pit patch if we now know it's a pit patch
+        if (member? pitpatch possible-pit-patches) [ set possible-pit-patches (remove pitpatch possible-pit-patches) ]
+      ]
+
+      ;; Rule 2
+      ;; breezy(x, y) ^ breezy(x-1, y) ^ breezy(x+1, y) --> possible-pit(x, y-1) ^ possible-pit(x, y+1)
+      if (member? (list rulexminus ycoord) breezy-patches) and (member? (list rulexplus ycoord) breezy-patches) [
+          if (not member? (list xcoord ruleyminus) pit-patches) [
+            set possible-pit-patches (lput (list xcoord ruleyminus) possible-pit-patches)
+          ]
+          if (not member? (list xcoord ruleyplus) pit-patches) [
+            set possible-pit-patches (lput (list xcoord ruleyplus) possible-pit-patches)
+          ]
+      ]
+
+      ;; Rule 3
+      ;; breezy(x, y) ^ breezy(x-1, y) ^ breezy(x, y-1) --> pit(x-1, y-1)
+      if (member? (list rulexminus ycoord) breezy-patches) and (member? (list xcoord ruleyminus) breezy-patches)[
+        let pitpatch (list rulexminus ruleyminus)
+        set pit-patches (lput pitpatch pit-patches)
+
+        ; No longer a possible pit patch if we now know it's a pit patch
+        if (member? pitpatch possible-pit-patches) [ set possible-pit-patches (remove pitpatch possible-pit-patches) ]
+      ]
+
+      ;; Rule 4
+      ;; breezy(x, y) ^ breezy(x, y+1) ^ breezy(x+1, y) --> pit(x+1, y+1)
+      if (member? (list xcoord ruleyplus) breezy-patches) and (member? (list rulexplus ycoord) breezy-patches)[
+        let pitpatch (list rulexminus ruleyminus)
+        set pit-patches (lput pitpatch pit-patches)
+
+        ; No longer a possible pit patch if we now know it's a pit patch
+        if (member? pitpatch possible-pit-patches) [ set possible-pit-patches (remove pitpatch possible-pit-patches) ]
+      ]
+
+      ;; Rule 5
+      ;; breezy(x, y) ^ breezy(x, y+1) ^ breezy(x-1, y) --> pit(x-1, y+1)
+      if (member? (list xcoord ruleyplus) breezy-patches) and (member? (list rulexminus ycoord) breezy-patches)[
+        let pitpatch (list rulexminus ruleyplus)
+        set pit-patches (lput pitpatch pit-patches)
+
+        ; No longer a possible pit patch if we now know it's a pit patch
+        if (member? pitpatch possible-pit-patches) [ set possible-pit-patches (remove pitpatch possible-pit-patches) ]
+      ]
+      let patch-in-front (list 0 0)
+      if heading = 0  [ set patch-in-front list xcoord (ycoord + 1) ]
+      if heading = 90 [ set patch-in-front list (xcoord + 1) ycoord ]
+      if heading = 180[ set patch-in-front list xcoord (ycoord - 1) ]
+      if heading = 270[ set patch-in-front list (xcoord - 1) ycoord ]
+
+      if (member? patch-in-front pit-patches) [
+        right-turn
+      ]
+      go-forward
+  ][
+    ; Not breezy
+    ; React to Wumpus
+   ifelse smelly? [
+    right-turn
+    right-turn
+    go-forward
+   ]
+   [
+     move-randomly
+   ]
+ ]
 end
 
 to move-randomly
@@ -422,9 +497,6 @@ to move-randomly
   if (move = 1)[left-turn]
   if (move = 2)[right-turn]
 end
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
