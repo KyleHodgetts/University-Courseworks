@@ -718,19 +718,44 @@ Run the program with different numbers of pits and gold, and with the Wumpus mov
 ![Initial Run](file:initialrun.png)
 ![Initial Analysis](file:initialanalysis.png)
 
-The agent won 1/5 of the time.
+The agents won 1/5 of the time.
 
 ## 3.2 & 3.3 Condition / Action Controller
 ### Rule Run Results
 ![Rule Run](file:rulerun.png)
 ![Rule Analysis](file:ruleanalysis.png)
 
-The agent won 4/5 of the time, a substantial improvement on the previous run.
+The agents won 4/5 of the time, a substantial improvement on the previous run.
 When the agent won in the previous run, it did so in a much less amount of ticks to the current run. I attribute this to the rule-based agent attempting to avoid pits and the Wumpus whilst looking for the gold.
 
 ## 3.4 & 3.5 State Controller
 ### State Run Results
+![State Run](file:staterun.png)
+![State Analysis](file:stateanalysis.png)
 
+In this set of runs, the agent won 19/20 times with 1/20 draw. I attribute the draw to a piece of gold being in a breezy square between two pits that spawned next to each other, hence the agents actively avoided that area.
+
+The average ticks it took for the scenario to end was larger than the rule based agents but the agent won more of the time, which is a good trade off.
+
+The average score for the state agent's runs is both higher than both the rule base agent and the random agent, showing that the deduction of pit locations went towards fewer agent deaths from pits and the wumpus.
+
+A downside to the approach I took would be my choice of agent movement while in safe, non breezy squares. I opted to allow the agent to move randomly throughout the safe squares, as opposed to just moving forward, increasing the likelihood of finding gold. This, however, also increased the likelihood that an area of patches may never be reached by the agent. This could occur if, while in safe patches, the agent opted to move around in a circle.
+
+The following predicates used for the agent's knowledge base are as follows:
+breezy(x, y) - patch at x, y is breezy
+possible-pit(x, y) - patch at x, y may be a pit
+pit(x, y) - patch at x, y is a confirmed pit
+
+Here are the list of inference rules I used to derive where the (possible) pits were among the patches:
+![Rule One](file:rule1.png)
+
+![Rule two](file:rule2.png)
+
+![Rule three](file:rule3.png)
+
+![Rule four](file:rule4.png)
+
+![Rule five](file:rule5.png)
 ## EXTENDING THE MODEL
 
 Your job is to write new controllers for "move-rule-based" and "move-with-state". Full details are on the lab sheet.
