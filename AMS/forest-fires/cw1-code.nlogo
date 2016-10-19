@@ -66,6 +66,7 @@ to run-experiment
   start-fire-probability
   ask units [without-interruption [execute-behaviour]]
   ask fires [without-interruption [fire-model-behaviour]]
+  tick
 end
 
 ;;; starts randonly a fire according to a probability (10%)
@@ -340,7 +341,7 @@ initial-water
 initial-water
 0
 50
-8
+25
 1
 1
 NIL
@@ -459,6 +460,24 @@ number-of-fires
 number-of-fires
 1 3 5 10 15 20 30 40
 7
+
+PLOT
+1447
+71
+1816
+280
+Efficiency
+Time (ticks)
+Number of Fires
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles with [breed = fires]"
 
 @#$#@#$#@
 ## WHAT IS IT?
