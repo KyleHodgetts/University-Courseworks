@@ -113,8 +113,11 @@ end
 ;;; Agent has sensors, effectors (actions) and a behaviour (reactive)
 ;;; The agent behaviour encoded sa reactive rules
 to execute-behaviour
-  ;if fire-burning[move-towards-fire]
   if detect-obstacle [avoid-obstacle stop]
+  if at-base and need-water [service-unit]
+  if need-water [move-towards-base]
+  if fire-burning and have-water [move-towards-fire]
+  if detect-fire and have-water [put-out-fire]
 end
 
 
@@ -128,7 +131,7 @@ to-report detect-obstacle
 end
 
 to-report fire-burning
-  if count fires > 0 [report true]
+  ifelse count fires > 0 [report true][report false]
 end
 
 ;;; detects a fire in the neighborhood of the unit (8 patches areound unit)
@@ -325,7 +328,7 @@ initial-water
 initial-water
 0
 50
-15
+10
 1
 1
 NIL
@@ -423,7 +426,7 @@ CHOOSER
 tree-num
 tree-num
 100 200 300 400
-0
+3
 
 CHOOSER
 12
@@ -433,7 +436,7 @@ CHOOSER
 fire-units-num
 fire-units-num
 1 5 10 20 30 40
-5
+2
 
 CHOOSER
 11
