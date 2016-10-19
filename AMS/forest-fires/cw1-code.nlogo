@@ -113,10 +113,22 @@ end
 ;;; Agent has sensors, effectors (actions) and a behaviour (reactive)
 ;;; The agent behaviour encoded sa reactive rules
 to execute-behaviour
-  if detect-obstacle [avoid-obstacle stop]
+  ; Actions in the architecture are written from highest priority to lowest
+
+  ; Avoiding an oncoming obstacle is the highest priority action the agent can perform.
+  if detect-obstacle [avoid-obstacle]
+
+  ; Agent will only be serviced while at the base if it needs water
   if at-base and need-water [service-unit]
+
+  ; Move towards the base if the agent needs water
   if need-water [move-towards-base]
+
+  ; Only move towards fire if the agent has water
+  ; Agent moving to fire without water won't be of any help
   if fire-burning and have-water [move-towards-fire]
+
+  ; Only attempt to put out the fire if the agent has water.
   if detect-fire and have-water [put-out-fire]
 end
 
@@ -204,7 +216,7 @@ end
 
 ;;; Turns the unit at a random direction
 to turn-randomly
-  set heading heading + random 30 - random 30
+  set heading heading + 10
 end
 
 ;;; service unit action is used for "recharging" the unit with water.
@@ -242,13 +254,13 @@ to-report trees-left
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-367
-10
-988
-477
+391
+18
+1389
+754
 24
 17
-12.47
+20.1633
 1
 10
 1
@@ -328,7 +340,7 @@ initial-water
 initial-water
 0
 50
-10
+8
 1
 1
 NIL
@@ -426,7 +438,7 @@ CHOOSER
 tree-num
 tree-num
 100 200 300 400
-3
+0
 
 CHOOSER
 12
@@ -436,7 +448,7 @@ CHOOSER
 fire-units-num
 fire-units-num
 1 5 10 20 30 40
-2
+5
 
 CHOOSER
 11
