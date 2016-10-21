@@ -117,7 +117,7 @@ to execute-behaviour
   ; Actions in the architecture are written from highest priority to lowest
 
   ; Avoiding an oncoming obstacle is the highest priority action the agent can perform.
-  if detect-obstacle [avoid-obstacle]
+  if detect-obstacle [avoid-obstacle stop]
 
   ; Agent will only be serviced while at the base if it needs water
   if at-base and need-water [service-unit]
@@ -125,12 +125,12 @@ to execute-behaviour
   ; Move towards the base if the agent needs water
   if need-water [move-towards-base]
 
+  ; Only attempt to put out the fire if the agent has water.
+  if detect-fire and have-water [put-out-fire]
+
   ; Only move towards fire if the agent has water
   ; Agent moving to fire without water won't be of any help
   if fire-burning and have-water [move-towards-fire]
-
-  ; Only attempt to put out the fire if the agent has water.
-  if detect-fire and have-water [put-out-fire]
 end
 
 
@@ -188,7 +188,7 @@ end
 ;;;; Actions that move the agent around.
 ;;; Turning randomly to avod an obstacle
 to avoid-obstacle
-  set heading heading + random 360
+  set heading heading + 10
 end
 
 ;; moving towards the base by following the signal. First move and then turn
@@ -217,7 +217,7 @@ end
 
 ;;; Turns the unit at a random direction
 to turn-randomly
-  set heading heading + 10
+  set heading heading + random 360
 end
 
 ;;; service unit action is used for "recharging" the unit with water.
@@ -368,10 +368,10 @@ Environment Parameters
 0
 
 MONITOR
-10
-388
-149
-433
+1595
+281
+1734
+326
 Number of Dead Trees
 dead-trees
 3
@@ -390,10 +390,10 @@ fires-left-in-sim
 11
 
 MONITOR
-10
-333
-156
-378
+1448
+281
+1594
+326
 Number of Saved Trees
 saved-trees
 3
@@ -439,7 +439,7 @@ CHOOSER
 tree-num
 tree-num
 100 200 300 400
-0
+3
 
 CHOOSER
 12
@@ -449,7 +449,7 @@ CHOOSER
 fire-units-num
 fire-units-num
 1 5 10 20 30 40
-5
+3
 
 CHOOSER
 11
