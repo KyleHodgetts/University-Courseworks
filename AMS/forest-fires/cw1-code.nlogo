@@ -1,6 +1,6 @@
 ; add model procedures here
 
-globals [dead-trees saved-trees fires-left-in-sim]
+globals [dead-trees saved-trees fires-left-in-sim total-time-burning trees-that-were-burning average-burning-time]
 breed [ units ]
 breed [ trees ]
 breed [ fires ]
@@ -15,6 +15,7 @@ to setupSimulationEnvironment
   set fires-left-in-sim number-of-fires
   set dead-trees 0
   set saved-trees 0
+  set trees-that-were-burning 0
   start-signal
   create-base
   setup-trees
@@ -66,6 +67,14 @@ to run-experiment
   start-fire-probability
   ask units [without-interruption [execute-behaviour]]
   ask fires [without-interruption [fire-model-behaviour]]
+
+  ; To prevent division by 0
+  if trees-that-were-burning > 0 [
+    ; Since the number of fires fluctuate as they die or are extinguished
+    ; All trees current burning increment the global total-time-burning over all trees
+    let newAvg (total-time-burning) / (trees-that-were-burning)
+    set average-burning-time newAvg
+  ]
   tick
 end
 
@@ -91,6 +100,7 @@ to fire-model-behaviour
  without-interruption [
  if any? trees-on neighbors [ask one-of trees-on neighbors [ ignite ]]
  set color color - 0.01
+ set total-time-burning total-time-burning + 1
  if color < red - 4 [set dead-trees dead-trees + 1  die]
  ]
 end
@@ -99,6 +109,7 @@ end
 ;;; starts a fire in a tree location
 to ignite
   set breed fires
+  set trees-that-were-burning trees-that-were-burning + 1
   set shape "tree"
   set color red
 end
@@ -341,7 +352,7 @@ initial-water
 initial-water
 0
 50
-25
+18
 1
 1
 NIL
@@ -478,6 +489,35 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles with [breed = fires]"
+
+MONITOR
+1506
+326
+1711
+371
+Average Burning Tree Waiting time
+average-burning-time
+2
+1
+11
+
+PLOT
+1453
+370
+1794
+563
+Average Burning Tree Waiting Time
+Time (Ticks)
+Avg. Waiting Time
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot average-burning-time"
 
 @#$#@#$#@
 ## WHAT IS IT?
