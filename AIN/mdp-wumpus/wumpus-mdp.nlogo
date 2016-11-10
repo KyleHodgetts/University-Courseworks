@@ -437,7 +437,56 @@ end
 ;;
 ;; what you have to write
 to get-patch-utility
+  let changed true
+  let gamma 0.7
+  while [changed]
+  [
+    set changed false
+    ask patches[
 
+      ifelse am-pit?[
+        set value -1
+      ]
+      [
+        if am-gold? [
+          set value 1
+        ]
+      ]
+        if not (am-pit? or am-gold?)[
+          let north-val 0
+          let south-val 0
+          let west-val 0
+          let east-val 0
+
+          if not (patch-at 0 1 = nobody) [
+            set north-val [value] of patch-at 0 1
+          ]
+
+          if not (patch-at 0 -1 = nobody) [
+            set south-val [value] of patch-at 0 -1
+          ]
+
+          if not (patch-at -1 0 = nobody) [
+            set west-val [value] of patch-at -1 0
+          ]
+
+          if not (patch-at 1 0 = nobody) [
+            set east-val [value] of patch-at 1 0
+          ]
+
+          let oldValue value
+          let upActionUtility (0.8 * north-val) + (0.1 * east-val) + (0.1 * west-val)
+          let downActionUtility (0.8 * south-val) + (0.1 * east-val) + (0.1 * west-val)
+          let leftActionUtility (0.8 * west-val) + (0.1 * north-val) + (0.1 * south-val)
+          let rightActionUtility (0.8 * east-val) + (0.1 * north-val) + (0.1 * south-val)
+          let maxActionUtility max (list upActionUtility downActionUtility leftActionUtility rightActionUtility)
+          set value precision (-0.04 + (gamma * maxActionUtility)) 5
+          show value
+          if not (value = oldValue) [ set changed true ]
+        ]
+    ]
+
+  ]
 end
 
 ;; colour-by-value
@@ -599,7 +648,7 @@ SWITCH
 246
 visible-breeze?
 visible-breeze?
-1
+0
 1
 -1000
 
@@ -610,7 +659,7 @@ SWITCH
 287
 visible-smell?
 visible-smell?
-1
+0
 1
 -1000
 
