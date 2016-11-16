@@ -30,7 +30,7 @@ globals [grabbed steps score renew?]
 ;; to store the value of the agent being in that state.
 ;;
 ;; you cam add additional attributes as you wish
-patches-own [am-pit? am-breezy? am-smelly? am-gold? am-wumpus? value]
+patches-own [am-pit? am-breezy? am-smelly? am-gold? am-wumpus? value visited?]
 
 ;; here you can add state information to be used by the agent
 agents-own []
@@ -493,7 +493,36 @@ end
 ;;
 ;; what you have to modify
 to colour-by-value
+  let currentColor pcolor
   set pcolor green
+
+  if value <= -0.04 [
+    set pcolor 15
+  ]
+
+  if value > 0.1 [
+    set pcolor 19
+  ]
+
+  if value > 0.2 [
+    set pcolor 16
+  ]
+
+  if value > 0.3 [
+    set pcolor 27
+  ]
+
+  if value > 0.5 [
+    set pcolor 25
+  ]
+
+  if value = 1 [
+    set pcolor 45
+  ]
+
+  if value = -2 [
+    set pcolor currentColor
+  ]
 end
 
 ;;----------------------------------------------------------------------------
@@ -519,7 +548,35 @@ end
 ;;
 ;; what you have to write
 to move-deterministic
+  if renew? = true [
+    colour-by-value
+    set renew? false
+  ]
 
+  if glitters?[
+    grab-gold
+    set renew? true
+  ]
+
+  set value -2
+  let utilities (list north-value east-value south-value west-value)
+  let maxUtility max utilities
+
+  while [maxUtility = 0] [
+    set utilities (remove maxUtility utilities)
+    set maxUtility max utilities
+  ]
+
+  ifelse maxUtility = north-value[north]
+  [
+    ifelse maxUtility = east-value [east]
+    [
+      ifelse maxUtility = south-value [south]
+      [
+        if maxUtility = west-value [west]
+      ]
+    ]
+  ]
 end
 
 ;; move-non-deterministic
