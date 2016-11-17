@@ -475,12 +475,22 @@ to get-patch-utility
           ]
 
           let oldValue value
-          let upActionUtility (0.8 * north-val) + (0.1 * east-val) + (0.1 * west-val)
-          let downActionUtility (0.8 * south-val) + (0.1 * east-val) + (0.1 * west-val)
-          let leftActionUtility (0.8 * west-val) + (0.1 * north-val) + (0.1 * south-val)
-          let rightActionUtility (0.8 * east-val) + (0.1 * north-val) + (0.1 * south-val)
-          let maxActionUtility max (list upActionUtility downActionUtility leftActionUtility rightActionUtility)
-          set value precision (-0.04 + (gamma * maxActionUtility)) 5
+          let maxActionUtility 0
+          ifelse (value-iteration = "non-deterministic")[
+            let upActionUtility (0.8 * north-val) + (0.1 * east-val) + (0.1 * west-val)
+            let downActionUtility (0.8 * south-val) + (0.1 * east-val) + (0.1 * west-val)
+            let leftActionUtility (0.8 * west-val) + (0.1 * north-val) + (0.1 * south-val)
+            let rightActionUtility (0.8 * east-val) + (0.1 * north-val) + (0.1 * south-val)
+            set maxActionUtility max (list upActionUtility downActionUtility leftActionUtility rightActionUtility)
+          ]
+          [
+            let upActionUtility north-val
+            let downActionUtility south-val
+            let leftActionUtility west-val
+            let rightActionUtility east-val
+            set maxActionUtility max (list upActionUtility downActionUtility leftActionUtility rightActionUtility)
+          ]
+          set value precision (-0.04 + (gamma * maxActionUtility)) 2
           show value
           if not (value = oldValue) [ set changed true ]
         ]
@@ -583,8 +593,49 @@ end
 ;;
 ;; what you have to write
 to move-non-deterministic
+  if renew? = true [
+    colour-by-value
+    set renew? false
+  ]
 
+  if glitters?[
+    grab-gold
+    set renew? true
+  ]
+
+  set value -2
+  let utilities (list north-value east-value south-value west-value)
+  let maxUtility max utilities
+
+  while [maxUtility = 0] [
+    set utilities (remove maxUtility utilities)
+    set maxUtility max utilities
+  ]
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -716,7 +767,7 @@ SWITCH
 287
 visible-smell?
 visible-smell?
-0
+1
 1
 -1000
 
