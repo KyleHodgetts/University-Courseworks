@@ -444,7 +444,7 @@ to get-patch-utility
     set changed false
     ask patches[
 
-      ifelse am-pit? or am-smelly?[
+      ifelse am-pit? [
         set value -1
       ]
       [
@@ -582,7 +582,7 @@ end
 to move-non-deterministic
   check-for-gold
 
-  ; Turn away from wumpus or pits in case agent accidently falls into one
+  ; Turn away from wumpus or pits in case agent accidently falls into it
   ifelse north-value = -1 [south][
     ifelse south-value = -1 [north][
       ifelse east-value = -1  [west][
@@ -625,7 +625,8 @@ end
 to-report get-max-utility
   ; Prevents agent getting stuck in loop
   ; Going back and forwards between two patches if they
-  ; have highest utilities when agent is in adjacent squares
+  ; have highest utilities when agent is in adjacent squares.
+  ;
   ; -0.99 so it is never the case that a pit is an equally
   ; attractive place to move
   set value -0.99
@@ -669,13 +670,13 @@ end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
-254
-33
-843
-643
+411
+18
+857
+485
 8
 8
-34.1
+25.65
 1
 10
 1
@@ -738,7 +739,7 @@ pits
 pits
 0
 20
-7
+6
 1
 1
 NIL
@@ -767,7 +768,7 @@ CHOOSER
 agent-move
 agent-move
 "deterministic" "non-deterministic"
-1
+0
 
 SWITCH
 19
@@ -842,7 +843,7 @@ CHOOSER
 value-iteration
 value-iteration
 "deterministic" "non-deterministic"
-1
+0
 
 SLIDER
 18
