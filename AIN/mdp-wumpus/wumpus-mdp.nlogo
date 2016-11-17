@@ -444,15 +444,13 @@ to get-patch-utility
     set changed false
     ask patches[
 
-      ifelse am-pit?[
+      ifelse am-pit? or am-smelly?[
         set value -1
       ]
       [
-        if am-gold? [
+        ifelse am-gold? [
           set value 1
-        ]
-      ]
-        if not (am-pit? or am-gold?)[
+        ][
           let north-val 0
           let south-val 0
           let west-val 0
@@ -494,8 +492,8 @@ to get-patch-utility
           show value
           if not (value = oldValue) [ set changed true ]
         ]
+      ]
     ]
-
   ]
 end
 
@@ -506,6 +504,9 @@ to colour-by-value
   let currentColor pcolor
   set pcolor green
 
+  ; Different scales of severity based
+  ; on utility
+  ; Higher the utility, the higher the colour
   if value <= -0.04 [
     set pcolor 15
   ]
@@ -526,11 +527,14 @@ to colour-by-value
     set pcolor 25
   ]
 
+  ; If square is gold, keep it gold
   if value = 1 [
     set pcolor 45
   ]
 
-  if value = -2 [
+  ; If square is next to a wumpus or a pit
+  ; or is a pit, keep the colour the same as it is supposed to be
+  if value <= -0.99[
     set pcolor currentColor
   ]
 end
@@ -558,25 +562,8 @@ end
 ;;
 ;; what you have to write
 to move-deterministic
-  if renew? = true [
-    colour-by-value
-    set renew? false
-  ]
-
-  if glitters?[
-    grab-gold
-    set renew? true
-  ]
-
-  set value -2
-  let utilities (list north-value east-value south-value west-value)
-  let maxUtility max utilities
-
-  while [maxUtility = 0] [
-    set utilities (remove maxUtility utilities)
-    set maxUtility max utilities
-  ]
-
+  check-for-gold
+  let maxUtility get-max-utility
   ifelse maxUtility = north-value[north]
   [
     ifelse maxUtility = east-value [east]
@@ -593,26 +580,70 @@ end
 ;;
 ;; what you have to write
 to move-non-deterministic
+  check-for-gold
+
+  ; Turn away from wumpus or pits in case agent accidently falls into one
+  ifelse north-value = -1 [south][
+    ifelse south-value = -1 [north][
+      ifelse east-value = -1  [west][
+          if west-value = -1  [east]
+      ]
+    ]
+  ]
+
+  ; Rationally move to the square that has the greatest utility
+  let maxUtility get-max-utility
+  ifelse maxUtility = north-value[north]
+  [
+    ifelse maxUtility = east-value [east]
+    [
+      ifelse maxUtility = south-value [south]
+      [
+        if maxUtility = west-value [west]
+      ]
+    ]
+  ]
+
+end
+
+to check-for-gold
+  ; Called once gold has been picked up
   if renew? = true [
     colour-by-value
     set renew? false
   ]
 
+  ; Grab gold if present
+  ; Rerun value iteration since patch where gold was
+  ; will now have a different utility
   if glitters?[
     grab-gold
     set renew? true
   ]
+end
 
-  set value -2
+to-report get-max-utility
+  ; Prevents agent getting stuck in loop
+  ; Going back and forwards between two patches if they
+  ; have highest utilities when agent is in adjacent squares
+  ; -0.99 so it is never the case that a pit is an equally
+  ; attractive place to move
+  set value -0.99
+
+  ; List of all utilities in adjacent sqaures
   let utilities (list north-value east-value south-value west-value)
   let maxUtility max utilities
 
+  ; If a 0 utility is returned
+  ; At a wall
   while [maxUtility = 0] [
+    ; Remove the 0 utility and try again
     set utilities (remove maxUtility utilities)
     set maxUtility max utilities
   ]
-end
 
+  report maxUtility
+end
 
 
 
@@ -638,13 +669,13 @@ end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-36
-560
-407
+254
+33
+843
+643
 8
 8
-20.0
+34.1
 1
 10
 1
@@ -707,7 +738,7 @@ pits
 pits
 0
 20
-6
+7
 1
 1
 NIL
@@ -736,7 +767,7 @@ CHOOSER
 agent-move
 agent-move
 "deterministic" "non-deterministic"
-0
+1
 
 SWITCH
 19
@@ -745,7 +776,7 @@ SWITCH
 208
 wumpus-moves?
 wumpus-moves?
-0
+1
 1
 -1000
 
@@ -767,15 +798,15 @@ SWITCH
 287
 visible-smell?
 visible-smell?
-1
+0
 1
 -1000
 
 MONITOR
-573
-13
-671
-58
+970
+48
+1068
+93
 agents
 count agents
 17
@@ -783,10 +814,10 @@ count agents
 11
 
 MONITOR
-573
-69
-671
-114
+970
+104
+1068
+149
 score
 score
 17
@@ -811,7 +842,7 @@ CHOOSER
 value-iteration
 value-iteration
 "deterministic" "non-deterministic"
-0
+1
 
 SLIDER
 18
