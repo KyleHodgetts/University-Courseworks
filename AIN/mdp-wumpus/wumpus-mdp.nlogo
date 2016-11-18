@@ -451,10 +451,10 @@ to get-patch-utility
         ifelse am-gold? [
           set value 1
         ][
-          let north-val 0
-          let south-val 0
-          let west-val 0
-          let east-val 0
+          let north-val -9999
+          let south-val -9999
+          let west-val -9999
+          let east-val -9999
 
           if not (patch-at 0 1 = nobody) [
             set north-val [value] of patch-at 0 1
@@ -488,7 +488,7 @@ to get-patch-utility
             let rightActionUtility east-val
             set maxActionUtility max (list upActionUtility downActionUtility leftActionUtility rightActionUtility)
           ]
-          set value precision (-0.04 + (gamma * maxActionUtility)) 2
+          set value precision (-0.04 + (gamma * maxActionUtility)) 5
           show value
           if not (value = oldValue) [ set changed true ]
         ]
@@ -501,7 +501,7 @@ end
 ;;
 ;; what you have to modify
 to colour-by-value
-    let currentColor pcolor
+  let currentColor pcolor
   set pcolor green
 
   ; Different scales of severity based
@@ -562,10 +562,6 @@ end
 ;;
 ;; what you have to write
 to move-deterministic
-  ; Discourage revisiting visited patches
-  ; -0.99 to ensure a pit or the wumpus is never more valuable to go to
-  set value -0.99
-
   check-for-corner-patch
   check-for-gold
   move
@@ -575,10 +571,6 @@ end
 ;;
 ;; what you have to write
 to move-non-deterministic
-  ; Discourage revisiting visited patches
-  ; -0.99 to ensure a pit or the wumpus is never more valuable to go to
-  set value -0.99
-
   check-for-gold
   check-for-corner-patch
 
@@ -593,8 +585,6 @@ to move-non-deterministic
       ]
     ]
   ]
-
-
 end
 
 to check-for-gold
@@ -619,6 +609,7 @@ to check-for-corner-patch
     ask patch-here [ set am-corner-patch? true]
   ]
 end
+
 
 to move
   let maxUtility get-max-utility
@@ -646,13 +637,11 @@ to-report get-max-utility
   ifelse not (patch-ahead 1 = nobody) [
     if [am-corner-patch?] of patch-ahead 1 = true [
       set utilities (remove north-value utilities)
-      south
     ]
   ][
     if not (patch-ahead -1 = nobody) [
       if [am-corner-patch?] of patch-ahead -1 = true [
         set utilities (remove south-value utilities)
-        north
       ]
     ]
   ]
@@ -660,13 +649,11 @@ to-report get-max-utility
   ifelse not (patch-at-heading-and-distance -90 1 = nobody) [
     if[am-corner-patch?] of patch-at-heading-and-distance -90 1 = true [
       set utilities (remove west-value utilities)
-      east
     ]
   ][
     if not (patch-at-heading-and-distance 90 1 = nobody) [
       if [am-corner-patch?] of patch-at-heading-and-distance 90 1 = true [
         set utilities (remove east-value utilities)
-        west
       ]
     ]
   ]
@@ -776,7 +763,7 @@ CHOOSER
 agent-move
 agent-move
 "deterministic" "non-deterministic"
-0
+1
 
 SWITCH
 19
@@ -851,7 +838,7 @@ CHOOSER
 value-iteration
 value-iteration
 "deterministic" "non-deterministic"
-0
+1
 
 SLIDER
 18
