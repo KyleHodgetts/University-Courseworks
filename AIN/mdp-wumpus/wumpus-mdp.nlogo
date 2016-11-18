@@ -6,7 +6,7 @@
 ;;
 ;; Author:   Simon Parsons
 ;; Modified: October 27th
-;; Version:  1.0
+;; Version:  1.1
 ;;----------------------------------------------------------------------------
 
 ;;----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ globals [grabbed steps score renew?]
 ;; to store the value of the agent being in that state.
 ;;
 ;; you cam add additional attributes as you wish
-patches-own [am-pit? am-breezy? am-smelly? am-gold? am-wumpus? value visited?]
+patches-own [am-pit? am-breezy? am-smelly? am-gold? am-wumpus? value am-corner-patch?]
 
 ;; here you can add state information to be used by the agent
 agents-own []
@@ -281,7 +281,7 @@ end
 ;;
 ;; value of the patch to the north of the agent.
 to-report north-value
-  let answer 0
+  let answer -9999
   if not (patch-ahead 1 = nobody)
     [ask patch-ahead 1 [set answer value]]
   report answer
@@ -291,7 +291,7 @@ end
 ;;
 ;; value of the patch to the south of the agent.
 to-report south-value
-  let answer 0
+  let answer -9999
   if not (patch-ahead -1 = nobody)
     [ask patch-ahead -1 [set answer value]]
   report answer
@@ -301,7 +301,7 @@ end
 ;;
 ;; value of the patch to the west of the agent.
 to-report west-value
-  let answer 0
+  let answer -9999
   if not (patch-at-heading-and-distance -90 1 = nobody)
     [ask patch-at-heading-and-distance -90 1 [set answer value]]
   report answer
@@ -311,7 +311,7 @@ end
 ;;
 ;; value of the patch to the east of the agent.
 to-report east-value
-  let answer 0
+  let answer -9999
   if not (patch-at-heading-and-distance 90 1 = nobody)
     [ask patch-at-heading-and-distance 90 1 [set answer value]]
   report answer
@@ -444,7 +444,7 @@ to get-patch-utility
     set changed false
     ask patches[
 
-      ifelse am-pit? [
+      ifelse am-pit? or am-wumpus? [
         set value -1
       ]
       [
@@ -501,7 +501,7 @@ end
 ;;
 ;; what you have to modify
 to colour-by-value
-  let currentColor pcolor
+    let currentColor pcolor
   set pcolor green
 
   ; Different scales of severity based
@@ -562,47 +562,38 @@ end
 ;;
 ;; what you have to write
 to move-deterministic
+  ; Discourage revisiting visited patches
+  ; -0.99 to ensure a pit or the wumpus is never more valuable to go to
+  set value -0.99
+
+  check-for-corner-patch
   check-for-gold
-  let maxUtility get-max-utility
-  ifelse maxUtility = north-value[north]
-  [
-    ifelse maxUtility = east-value [east]
-    [
-      ifelse maxUtility = south-value [south]
-      [
-        if maxUtility = west-value [west]
-      ]
-    ]
-  ]
+  move
 end
 
 ;; move-non-deterministic
 ;;
 ;; what you have to write
 to move-non-deterministic
+  ; Discourage revisiting visited patches
+  ; -0.99 to ensure a pit or the wumpus is never more valuable to go to
+  set value -0.99
+
   check-for-gold
+  check-for-corner-patch
 
   ; Turn away from wumpus or pits in case agent accidently falls into it
+  ; Non deterministic policy
   ifelse north-value = -1 [south][
     ifelse south-value = -1 [north][
       ifelse east-value = -1  [west][
-          if west-value = -1  [east]
+         ifelse west-value = -1  [east][
+          move
+         ]
       ]
     ]
   ]
 
-  ; Rationally move to the square that has the greatest utility
-  let maxUtility get-max-utility
-  ifelse maxUtility = north-value[north]
-  [
-    ifelse maxUtility = east-value [east]
-    [
-      ifelse maxUtility = south-value [south]
-      [
-        if maxUtility = west-value [west]
-      ]
-    ]
-  ]
 
 end
 
@@ -622,61 +613,66 @@ to check-for-gold
   ]
 end
 
-to-report get-max-utility
-  ; Prevents agent getting stuck in loop
-  ; Going back and forwards between two patches if they
-  ; have highest utilities when agent is in adjacent squares.
-  ;
-  ; -0.99 so it is never the case that a pit is an equally
-  ; attractive place to move
-  set value -0.99
-
-  ; List of all utilities in adjacent sqaures
-  let utilities (list north-value east-value south-value west-value)
-  let maxUtility max utilities
-
-  ; If a 0 utility is returned
-  ; At a wall
-  while [maxUtility = 0] [
-    ; Remove the 0 utility and try again
-    set utilities (remove maxUtility utilities)
-    set maxUtility max utilities
+to check-for-corner-patch
+  ; Avoids getting stuck in corner patches
+  if (north-value = -9999 and east-value = -9999) or (north-value = -9999 and east-value = -9999) or (south-value = -9999 and east-value = -9999) or (south-value = -9999 and west-value = -9999)[
+    ask patch-here [ set am-corner-patch? true]
   ]
-
-  report maxUtility
 end
 
+to move
+  let maxUtility get-max-utility
+  ; Move to patch with greatest utility
+  ifelse maxUtility = north-value [north]
+  [
+    ifelse maxUtility = east-value [east]
+    [
+      ifelse maxUtility = south-value [south]
+      [
+        if maxUtility = west-value [west]
+      ]
+    ]
+  ]
+end
 
+to-report get-max-utility
+  ; Make a list with all utility values
+  let utilities (list north-value east-value south-value west-value)
 
+  ;;
+  ; Remove utilities of patches that don't exist or ones already known to be a corner patch
+  ;;
 
+  if patch-ahead 1 = nobody or [am-corner-patch?] of patch-ahead 1 = true [
+    set utilities (remove north-value utilities)
+  ]
 
+  if patch-ahead -1 = nobody or [am-corner-patch?] of patch-ahead -1 = true [
+    set utilities (remove south-value utilities)
+  ]
 
+  if patch-at-heading-and-distance -90 1 = nobody or [am-corner-patch?] of patch-at-heading-and-distance -90 1 = true [
+    set utilities (remove west-value utilities)
+  ]
 
+  if patch-at-heading-and-distance 90 1 = nobody or [am-corner-patch?] of patch-at-heading-and-distance 90 1 = true [
+    set utilities (remove east-value utilities)
+  ]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  ; For the utilities that are left
+  ; Return it
+  let maxUtility max utilities
+  report maxUtility
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-411
-18
-857
-485
+210
+36
+560
+407
 8
 8
-25.65
+20.0
 1
 10
 1
@@ -768,7 +764,7 @@ CHOOSER
 agent-move
 agent-move
 "deterministic" "non-deterministic"
-0
+1
 
 SWITCH
 19
@@ -804,10 +800,10 @@ visible-smell?
 -1000
 
 MONITOR
-970
-48
-1068
-93
+573
+13
+671
+58
 agents
 count agents
 17
@@ -815,10 +811,10 @@ count agents
 11
 
 MONITOR
-970
-104
-1068
-149
+573
+69
+671
+114
 score
 score
 17
@@ -830,7 +826,7 @@ TEXTBOX
 10
 470
 28
-Wumpus MDP (version 1)
+Wumpus MDP (version 1.1)
 11
 0.0
 1
@@ -843,7 +839,7 @@ CHOOSER
 value-iteration
 value-iteration
 "deterministic" "non-deterministic"
-0
+1
 
 SLIDER
 18
@@ -920,6 +916,7 @@ Artificial Intelligence: A Modern Approach, 3rd Edition, Stuart Russell and Pete
 
 Thanks to:
 
+Lukas Stappen
 Kristopher Graham
 Marco Salgado Martinez
 Jianan Chen
