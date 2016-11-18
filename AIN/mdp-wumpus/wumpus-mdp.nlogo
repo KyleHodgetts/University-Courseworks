@@ -640,27 +640,39 @@ to-report get-max-utility
   let utilities (list north-value east-value south-value west-value)
 
   ;;
-  ; Remove utilities of patches that don't exist or ones already known to be a corner patch
+  ; Remove utilities of patches known to be a corner patch
   ;;
 
-  if patch-ahead 1 = nobody or [am-corner-patch?] of patch-ahead 1 = true [
-    set utilities (remove north-value utilities)
+  ifelse not (patch-ahead 1 = nobody) [
+    if [am-corner-patch?] of patch-ahead 1 = true [
+      set utilities (remove north-value utilities)
+      south
+    ]
+  ][
+    if not (patch-ahead -1 = nobody) [
+      if [am-corner-patch?] of patch-ahead -1 = true [
+        set utilities (remove south-value utilities)
+        north
+      ]
+    ]
   ]
 
-  if patch-ahead -1 = nobody or [am-corner-patch?] of patch-ahead -1 = true [
-    set utilities (remove south-value utilities)
-  ]
-
-  if patch-at-heading-and-distance -90 1 = nobody or [am-corner-patch?] of patch-at-heading-and-distance -90 1 = true [
-    set utilities (remove west-value utilities)
-  ]
-
-  if patch-at-heading-and-distance 90 1 = nobody or [am-corner-patch?] of patch-at-heading-and-distance 90 1 = true [
-    set utilities (remove east-value utilities)
+  ifelse not (patch-at-heading-and-distance -90 1 = nobody) [
+    if[am-corner-patch?] of patch-at-heading-and-distance -90 1 = true [
+      set utilities (remove west-value utilities)
+      east
+    ]
+  ][
+    if not (patch-at-heading-and-distance 90 1 = nobody) [
+      if [am-corner-patch?] of patch-at-heading-and-distance 90 1 = true [
+        set utilities (remove east-value utilities)
+        west
+      ]
+    ]
   ]
 
   ; For the utilities that are left
-  ; Return it
+  ; Return the maximum
   let maxUtility max utilities
   report maxUtility
 end
@@ -764,7 +776,7 @@ CHOOSER
 agent-move
 agent-move
 "deterministic" "non-deterministic"
-1
+0
 
 SWITCH
 19
@@ -839,7 +851,7 @@ CHOOSER
 value-iteration
 value-iteration
 "deterministic" "non-deterministic"
-1
+0
 
 SLIDER
 18
